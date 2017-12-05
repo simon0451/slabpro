@@ -1,0 +1,23 @@
+double calcPID(error_in,int_in,kp_in,ki_in,kd_in,distanceToObstacle,distance)
+{
+	error_prior = error_in;
+	integral = int_in;
+	KP = kp_in;
+	KI = ki_in;
+	KD = kd_in;
+	
+	while(error < 0.0005)
+	{
+		error = distanceToObstacle - distance;
+		integral = integral + (error*iteration_time);
+		derivative = (error - error_prior)/iteration_time;
+		
+		outputP = KP*error;
+		outputI = KI*integral;
+		outputPID = KP*error + KI*integral + KD*derivative + bias;
+		error_prior = error;
+		sleep(iteration_time;)
+	}
+	return outputP
+
+}
