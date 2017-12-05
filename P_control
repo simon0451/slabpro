@@ -1,0 +1,13 @@
+double calcP(error_in,int_in,kp_in,distanceToObstacle,distance)
+{
+	error_prior = error_in;
+	KP = kp_in; // must be a predetermined constant
+	iteration_time = 10/1000; // 10 ms wait time 
+
+	error = distanceToObstacle - distance;
+	
+	outputP = KP*error;
+	sleep(iteration_time);
+
+	return outputP
+}
