@@ -1,0 +1,17 @@
+double calcP(error_in,kp_in,distanceToObstacle,distance)
+{
+	error_prior = error_in;
+	bias = 0; 			// offset error parameter, left zero for now
+	KP = kp_in; 			// must be a predetermined constant
+	iteration_time = 10; 		// 10 ms wait time between iterations
+
+	error = distanceToObstacle - distance;
+	
+	outputP = (KP*error) + bias;
+	error_prior = error;
+
+	sleep(iteration_time);
+
+	return outputP
+
+}
