@@ -1,0 +1,17 @@
+double calcD(error_in,kd_in,distanceToObstacle,distance)
+{
+	error_prior = error_in;
+	bias = 0; 			// offset error parameter, left zero for now
+	KD = kd_in; 			// must be a predetermined constant
+	iteration_time = 10; 		// 10 ms wait time between iterations
+
+	error = distanceToObstacle - distance;
+	derivative = (error - error_prior)/iteration_time;
+
+	outputD = (KD*derivative) + bias;
+	error_prior = error;
+
+	sleep(iteration_time);
+
+	return outputD
+}
