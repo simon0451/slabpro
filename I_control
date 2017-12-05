@@ -1,0 +1,13 @@
+double calcI(error_in,int_in,ki_in,distanceToObstacle,distance)
+{
+	error_prior = error_in;
+	KI = ki_in; // must be a predetermined constant
+	iteration_time = 10/1000; // 10 ms wait time 
+
+	error = distanceToObstacle - distance;
+	
+	outputI = KI*error;
+	sleep(iteration_time);
+
+	return outputI
+}
