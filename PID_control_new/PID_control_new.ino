@@ -23,17 +23,18 @@ const uint8_t STOPDISTANCE = 10; //This sets the stopping distance
 const uint8_t KP = 1; // Proportional gain tuning parameter
 const uint8_t KI = 1; // Integral gain tuning parameter
 const uint8_t KD = 1; // Derivative gain tuning parameter
-const uint8_t ITER_TIME = 10; // Record every 10 ms
+const uint8_t ITER_TIME = 1; // Record every 10 ms
 const uint8_t MOTOR_MAX_FORWARD = 100; // Motor forward max speed
 const uint8_t MOTOR_MAX_BACKWARD = 0; // Motor backward max speed
 const uint8_t MOTOR_STOP = 50; // Motor stop value
+const uint16_t BAUD = 9600; //Serial communications rate for debugging
 
 // Initialize Variables
 uint16_t duration = 0; //Used to calculate distance
 uint16_t distance = 130; //cm, Distance to obstacle, starts at 255 because the ultrasonic sensor won't return a value larger than this
-uint8_t throttle = 50; //The speed of the robot as understood by the Sabertooth 2x12 RC ESC
-uint8_t error_init = 0; //Initial error
-uint8_t PID_out = 0; //PID Output, expect values between 50 to 100 for forward motion, and 50 to 0 for backward motion, 50 is stop
+uint16_t throttle = 50; //The speed of the robot as understood by the Sabertooth 2x12 RC ESC
+uint8_t error = 0; //Initial error
+uint8_t distancein = 0;
 
 Servo SABERTOOTH; //Creating a servo object to represent forward/rearward motion input to the ESC
 
@@ -46,7 +47,6 @@ uint8_t FindDistance() //This function uses the HC-SR04 ultrasonic sensor to fin
 	digitalWrite(TRIG, LOW);
 	duration = pulseIn(ECHO, HIGH); //Finding the time between the
 	distance = duration/58.2; //This will truncate the value so that it's an integer
-	
 	if (distance >= MAXDISTANCE) //If the distance is out of range or larger than the MAXDISTANCE value, the sensor will just assume it is the MAXDISTANCE
 	{
 		return MAXDISTANCE;
@@ -61,35 +61,14 @@ uint8_t FindDistance() //This function uses the HC-SR04 ultrasonic sensor to fin
 	}
 }
 
-uint8_t calcPID(error_in,distanceIn) // add int_in if start condition is not zero
+uint16_t calcPID(uint8_t error_in, uint8_t distancein) // add int_in if start condition is not zero
 {
 	uint8_t error_prior = error_in;
-	// integral = int_in;
-	// bias = 0; 			// offset error parameter, left zero for now
-	// KP = kp_in; 			// must be a predetermined constant
-	// KI = ki_in; 			// must be a predetermined constant
-	// KD = kd_in; 			// must be a predetermined constant
-	// ITER_TIME = 10; 		// 10 ms wait time between iterations
-	// MOTOR_MAX_FORWARD = 100;		// max forward speed
-	// MOTOR_MAX_BACKWARD = 0; 			// max backwards speed
-	// motor_stop = 50;		// stops the motor
-	
-	// Calculate the error
-	uint8_t error = distanceIn - STOPDISTANCE; // PID sensor distance - target distance
-	
-	// Calculate the Proportional
+	uint8_t error = distance - STOPDISTANCE; // PID sensor distance - target distance
 	uint16_t proportional = KP*error;
-	
-	// Calculate the integral
-	// integral = integral + (error*ITER_TIME);
 	uint16_t integral = KI*error*ITER_TIME;
-	
-	// Calculate the derivative
 	uint16_t derivative = KD*(error - error_prior)/ITER_TIME;
-	
-	// Calculate the control variable
-	uint16_t outputPID = proportional + integral + derivative; // + bias;
-	
+	uint16_t outputPID = proportional + integral + derivative;
 	// limit the motor speed
 	if (outputPID > MOTOR_MAX_FORWARD)
 	{
@@ -112,23 +91,31 @@ uint8_t calcPID(error_in,distanceIn) // add int_in if start condition is not zer
 
 void setup()
 {
+  Serial.begin(BAUD);
 	pinMode(TRIG, OUTPUT); //Initializing the sonar control pins
-	pinMode(ECHO, OUTPUT);
+	pinMode(ECHO, INPUT);
 	
 	SABERTOOTH.attach(DRIVE); //the servo object is bound to pin 2 (DRIVE) and SABERTOOTH is used to refer to the ESC from here on out
 	SABERTOOTH.writeMicroseconds(1500); //Initializing ESC at zero throttle
+  delay(500);
 }
 
 
 void loop()
 {
 	distance = FindDistance();
-	
+  Serial.print("Distance: ");
+  Serial.println(distance);
 	//Do some PID shit here
-	PID_out = calcPID(error_init,distance);
-	error_init = distance - STOPDISTANCE;
-	
+	throttle = calcPID(error,distance);
+  Serial.print("throttle pre math: ");
+  Serial.println(throttle);
+	error = distance - STOPDISTANCE;
+  Serial.print("error: ");
+  Serial.println(error);
 	throttle = (throttle*10)+1000; //Converts the throttle value (0-50-100) to a pulsewidth in microseconds understandable by the MEGA
+  Serial.print("throttle: ");
+  Serial.println(throttle);
 	SABERTOOTH.writeMicroseconds(throttle); //Sending the command to the ESC
 	
 	// wait for next iteration of function
