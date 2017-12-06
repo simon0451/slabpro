@@ -1,0 +1,50 @@
+int calcPID(error_in,kp_in,ki_in,kd_in,distanceToObstacle,distance) // add int_in if start condition is not zero
+{
+	error_prior = error_in;
+	// integral = int_in;
+	bias = 0; 			// offset error parameter, left zero for now
+	KP = kp_in; 			// must be a predetermined constant
+	KI = ki_in; 			// must be a predetermined constant
+	KD = kd_in; 			// must be a predetermined constant
+	iteration_time = 10; 		// 10 ms wait time between iterations
+	motor_max = 100;		// max forward speed
+	motor_min = 0; 			// max backwards speed
+	motor_stop = 50;		// stops the motor
+	
+	// Calculate the error
+	error = distanceToObstacle - distance; // PID sensor distance - target distance
+
+	// Calculate the integral
+	// integral = integral + (error*iteration_time);
+	integral = error*iteration_time;
+
+	// Calculate the derivative
+	derivative = (error - error_prior)/iteration_time;
+	
+	// Calculate the control variable
+	outputPID = (KP*error) + (KI*integral) + (KD*derivative) + bias;
+
+	// limit the motor speed
+	if (outputPID > motor_max)
+	{
+		outputPID = motor_max;
+	}
+	if (outputPID < motor_min)
+	{
+		outputPID = motor_min;
+	}
+
+	if (error = 0)
+	{
+		outputPID = motor_stop; // stop
+		return outputPID
+	}
+
+	return outputPID
+
+	// wait for next iteration of function
+	sleep(iteration_time);
+
+	// Create error to be inputed in the next loop
+	error_prior = error;
+}
