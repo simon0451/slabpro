@@ -16,7 +16,7 @@
 const uint8_t DRIVE = 2; //PWM out on pin 2
 const uint32_t BAUD = 9600; //communications rate with arduino
 
-Servo SABERTOOTH; //Creating a servo object to represent forward motion input to the ESC
+Servo SABERTOOTH; //Creating a servo object to represent forward/rearward motion input to the ESC
 
 void setup()
 {
@@ -24,7 +24,6 @@ void setup()
   Serial.begin(BAUD); //open up communications for testing purposes
   Serial.println("Enter a motor speed value (0 = back full, 50 = all stop, 100 = ahead full");
   SABERTOOTH.writeMicroseconds(1500); //Initializing ESC at zero throttle
-
 }
 
 void loop()
@@ -38,5 +37,4 @@ void loop()
     pulse = (pulse*10)+1000; //converting percentage to a pulse width for use with theThunderbird 18 ESC
     SABERTOOTH.writeMicroseconds(pulse); //Sending the command to the ESC - note that this takes about a second for an Arduino Uno to do, a more powerful microcontroller is recommended
   }
-
 }
