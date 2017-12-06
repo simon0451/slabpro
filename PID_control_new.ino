@@ -65,11 +65,11 @@ void setup()
   SABERTOOTH.writeMicroseconds(1500); //Initializing ESC at zero throttle
 }
 
-int calcPID(error_in,kp_in,ki_in,kd_in,distanceToObstacle,distance,iteration_time) // add int_in if start condition is not zero
+int calcPID(error_in,distanceToObstacle,distance,iteration_time) // add int_in if start condition is not zero
 {
-	error_prior = error_in;
+	uint8_t error_prior = error_in;
 	// integral = int_in;
-	bias = 0; 			// offset error parameter, left zero for now
+	// uint8_t bias = 0; 			// offset error parameter, left zero for now
 	// KP = kp_in; 			// must be a predetermined constant
 	// KI = ki_in; 			// must be a predetermined constant
 	// KD = kd_in; 			// must be a predetermined constant
@@ -89,7 +89,7 @@ int calcPID(error_in,kp_in,ki_in,kd_in,distanceToObstacle,distance,iteration_tim
 	derivative = (error - error_prior)/iteration_time;
 	
 	// Calculate the control variable
-	outputPID = (kp_in*error) + (ki_in*integral) + (kd_in*derivative) + bias;
+	outputPID = (KP*error) + (KI*integral) + (KD*derivative); // + bias;
 
 	// limit the motor speed
 	if (outputPID > motor_max)

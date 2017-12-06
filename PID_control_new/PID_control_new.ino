@@ -13,7 +13,7 @@
 
 #include <Servo.h> //required for controlling an ESC
 
-//Constants
+// Define Constants
 const uint8_t DRIVE = 2; //PWM out on pin 2
 const uint8_t ECHO = 7; //The echo pin on the HC-SR04 ultrasonic sensor
 const uint8_t TRIG = 8; //The trigger pin on the HC-SR04 ultrasonic sensor
@@ -24,91 +24,99 @@ const uint8_t KP = 1; // Proportional gain tuning parameter
 const uint8_t KI = 1; // Integral gain tuning parameter
 const uint8_t KD = 1; // Derivative gain tuning parameter
 const uint8_t ITER_TIME = 10; // Record every 10 ms
-//Variables
+const uint8_t MOTOR_MAX_FORWARD = 100; // Motor forward max speed
+const uint8_t MOTOR_MAX_BACKWARD = 0; // Motor backward max speed
+const uint8_t MOTOR_STOP = 50; // Motor stop value
+
+// Initialize Variables
 uint16_t duration = 0; //Used to calculate distance
 uint16_t distance = 130; //cm, Distance to obstacle, starts at 255 because the ultrasonic sensor won't return a value larger than this
 uint8_t throttle = 50; //The speed of the robot as understood by the Sabertooth 2x12 RC ESC
 uint8_t error_init = 0; //Initial error
+uint8_t PID_out = 0; //PID Output, expect values between 50 to 100 for forward motion, and 50 to 0 for backward motion, 50 is stop
 
 Servo SABERTOOTH; //Creating a servo object to represent forward/rearward motion input to the ESC
 
 uint8_t FindDistance() //This function uses the HC-SR04 ultrasonic sensor to find the distance to the wall 
 {
-  digitalWrite(TRIG, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIG, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG, LOW);
-  duration = pulseIn(ECHO, HIGH); //Finding the time between the
-  distance = duration/58.2; //This will truncate the value so that it's an integer
-
-  if (distance >= MAXDISTANCE) //If the distance is out of range or larger than the MAXDISTANCE value, the sensor will just assume it is the MAXDISTANCE
-  {
-    return MAXDISTANCE;
-  }
-  if (distance <= MINDISTANCE) //Likewise for the MINDISTANCE
-  {
-    return 0;
-  }
-  else
-  {
-    return distance; //The function returns the distance in cm
-  }
+	digitalWrite(TRIG, LOW);
+	delayMicroseconds(2);
+	digitalWrite(TRIG, HIGH);
+	delayMicroseconds(10);
+	digitalWrite(TRIG, LOW);
+	duration = pulseIn(ECHO, HIGH); //Finding the time between the
+	distance = duration/58.2; //This will truncate the value so that it's an integer
+	
+	if (distance >= MAXDISTANCE) //If the distance is out of range or larger than the MAXDISTANCE value, the sensor will just assume it is the MAXDISTANCE
+	{
+		return MAXDISTANCE;
+	}
+	if (distance <= MINDISTANCE) //Likewise for the MINDISTANCE
+	{
+		return 0;
+	}
+	else
+	{
+		return distance; //The function returns the distance in cm
+	}
 }
 
-uint8_t calcPID(error_in,kp_in,ki_in,kd_in,distanceToObstacle,distanceIn,iteration_time) // add int_in if start condition is not zero
+uint8_t calcPID(error_in,distanceIn) // add int_in if start condition is not zero
 {
-	error_prior = error_in;
+	uint8_t error_prior = error_in;
 	// integral = int_in;
-	bias = 0; 			// offset error parameter, left zero for now
+	// bias = 0; 			// offset error parameter, left zero for now
 	// KP = kp_in; 			// must be a predetermined constant
 	// KI = ki_in; 			// must be a predetermined constant
 	// KD = kd_in; 			// must be a predetermined constant
-	// iteration_time = 10; 		// 10 ms wait time between iterations
-	motor_max = 100;		// max forward speed
-	motor_min = 0; 			// max backwards speed
-	motor_stop = 50;		// stops the motor
+	// ITER_TIME = 10; 		// 10 ms wait time between iterations
+	// MOTOR_MAX_FORWARD = 100;		// max forward speed
+	// MOTOR_MAX_BACKWARD = 0; 			// max backwards speed
+	// motor_stop = 50;		// stops the motor
 	
 	// Calculate the error
-	error = distanceIn - distanceToObstacle; // PID sensor distance - target distance
-
+	uint8_t error = distanceIn - STOPDISTANCE; // PID sensor distance - target distance
+	
+	// Calculate the Proportional
+	uint16_t proportional = KP*error;
+	
 	// Calculate the integral
-	// integral = integral + (error*iteration_time);
-	integral = error*iteration_time;
-
+	// integral = integral + (error*ITER_TIME);
+	uint16_t integral = KI*error*ITER_TIME;
+	
 	// Calculate the derivative
-	derivative = (error - error_prior)/iteration_time;
+	uint16_t derivative = KD*(error - error_prior)/ITER_TIME;
 	
 	// Calculate the control variable
-	outputPID = (kp_in*error) + (ki_in*integral) + (kd_in*derivative) + bias;
-
+	uint16_t outputPID = proportional + integral + derivative; // + bias;
+	
 	// limit the motor speed
-	if (outputPID > motor_max)
+	if (outputPID > MOTOR_MAX_FORWARD)
 	{
-		outputPID = motor_max;
+		outputPID = MOTOR_MAX_FORWARD;
 	}
-	if (outputPID < motor_min)
+	if (outputPID < MOTOR_MAX_BACKWARD)
 	{
-		outputPID = motor_min;
+		outputPID = MOTOR_MAX_BACKWARD;
 	}
-
+	
 	if (error = 0)
 	{
-		outputPID = motor_stop; // stop
+		outputPID = MOTOR_STOP; // stop
 		return outputPID;
 	}
-
+	
 	return outputPID;
 }
 
 
 void setup()
 {
-  pinMode(TRIG, OUTPUT); //Initializing the sonar control pins
-  pinMode(ECHO, OUTPUT);
-  
-  SABERTOOTH.attach(DRIVE); //the servo object is bound to pin 2 (DRIVE) and SABERTOOTH is used to refer to the ESC from here on out
-  SABERTOOTH.writeMicroseconds(1500); //Initializing ESC at zero throttle
+	pinMode(TRIG, OUTPUT); //Initializing the sonar control pins
+	pinMode(ECHO, OUTPUT);
+	
+	SABERTOOTH.attach(DRIVE); //the servo object is bound to pin 2 (DRIVE) and SABERTOOTH is used to refer to the ESC from here on out
+	SABERTOOTH.writeMicroseconds(1500); //Initializing ESC at zero throttle
 }
 
 
@@ -117,12 +125,12 @@ void loop()
 	distance = FindDistance();
 	
 	//Do some PID shit here
-	PID_out = calcPID(error_init,KP,KI,KD,STOPDISTANCE,distance,ITER_TIME);
+	PID_out = calcPID(error_init,distance);
 	error_init = distance - STOPDISTANCE;
 	
 	throttle = (throttle*10)+1000; //Converts the throttle value (0-50-100) to a pulsewidth in microseconds understandable by the MEGA
 	SABERTOOTH.writeMicroseconds(throttle); //Sending the command to the ESC
 	
 	// wait for next iteration of function
-	sleep(ITER_TIME);
+	delay(ITER_TIME);
 }
