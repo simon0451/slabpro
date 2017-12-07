@@ -20,7 +20,7 @@ const uint8_t TRIG = 8; //The trigger pin on the HC-SR04 ultrasonic sensor
 const uint16_t MAXDISTANCE = 130; //This makes it so the sensor won't try to resolve distances outside the sensor's range
 const uint16_t MINDISTANCE = 0; //This sets the minimum range of the sensor to 0 for obvious reasons
 const uint8_t STOPDISTANCE = 10; //This sets the stopping distance
-const uint8_t KP = 1; // Proportional gain tuning parameter, cut by 50% at a time
+const uint8_t KP = 1; // Proportional gain tuning parameter
 // const uint8_t KI = 1; // Integral gain tuning parameter
 // const uint8_t KD = 1; // Derivative gain tuning parameter
 const uint8_t ITER_TIME = 1; // Record every 10 ms
@@ -34,7 +34,7 @@ uint16_t duration = 0; //Used to calculate distance
 uint16_t distance = 130; //cm, Distance to obstacle, starts at 255 because the ultrasonic sensor won't return a value larger than this
 uint16_t throttle = 50; //The speed of the robot as understood by the Sabertooth 2x12 RC ESC
 uint8_t error = 0; //Initial error
-uint8_t distanceCur = 0;
+// uint8_t distancein = 0;
 uint8_t previousSpeed = 0;
 
 Servo SABERTOOTH; //Creating a servo object to represent forward/rearward motion input to the ESC
@@ -62,30 +62,36 @@ uint8_t FindDistance() //This function uses the HC-SR04 ultrasonic sensor to fin
 	}
 }
 
-uint16_t CalcP(uint8_t distanceCur, uint8_t previousSpeed) // add int_in if start condition is not zero, uint8_t error_prior not used at the moment
+uint16_t CalcP(uint8_t distance, uint8_t previousSpeed) // add int_in if start condition is not zero, uint8_t error_prior not used at the moment
 {
-	// As distance goes from 130 to 10, speed decreases from 100 to 50, linearly. Since speed decreases as distance decreases
-	// the slope is positive. The intercept term is calculated from two points on the line
-	uint8_t targetSpeed = (50/120)*(distanceCur + 110);
-	
-	if (targetSpeed > 100)
+	if (distance < 10)
 	{
-		targetSpeed = 100;
+		outputP = 25;
 	}
-	
-	uint8_t error = previousSpeed - targetSpeed;
-	
-	uint16_t outputP = previousSpeed - KP*error
-	
-	if (outputP > 100)
+	else
 	{
-		outputP = 100;
+		// As distance goes from 130 to 10, speed decreases from 100 to 50, linearly. Since speed decreases as distance decreases
+		// the slope is positive. The intercept term is calculated from two points on the line
+		uint8_t targetSpeed = (50/120)*(distance + 110);
+		
+		if (targetSpeed > 100)
+		{
+			targetSpeed = 100;
+		}
+		
+		uint8_t error = previousSpeed - targetSpeed;
+		
+		uint16_t outputP = previousSpeed - KP*error
+		
+		if (outputP > 100)
+		{
+			outputP = 100;
+		}
+		if (outputP < 0)
+		{
+			outputP = 0;
+		}
 	}
-	if (outputP < 0)
-	{
-		outputP = 0;
-	}
-	
 	return outputP;
 }
 
@@ -100,25 +106,22 @@ void setup()
   delay(500);
 }
 
+
 void loop()
 {
 	distance = FindDistance();
-	
   Serial.print("Distance: ");
   Serial.println(distance);
 	//Do some PID shit here
-	throttle = CalcP(error,distance,previousSpeed);
-	error = previousSpeed - throttle;
+	throttle = calcP(distance,previousSpeed);
 	previousSpeed = throttle;
 	
   Serial.print("throttle pre math: ");
   Serial.println(throttle);
 	error = distance - STOPDISTANCE;
-	
   Serial.print("error: ");
   Serial.println(error);
 	throttle = (throttle*10)+1000; //Converts the throttle value (0-50-100) to a pulsewidth in microseconds understandable by the MEGA
-	
   Serial.print("throttle: ");
   Serial.println(throttle);
 	SABERTOOTH.writeMicroseconds(throttle); //Sending the command to the ESC
