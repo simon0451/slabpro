@@ -29,18 +29,18 @@ const uint8_t STOP = 50; //Throttle corresponding to robot stop
 const uint16_t BAUD = 9600; //Serial communications rate for debugging
 //Tuning parameters
 const uint16_t TRIMVALUE = 1502; //ms, value sent to the ESC for left/right tuning so that the robot tracks straight
-const uint8_t TARGET = 10; //This sets the stopping distance
-const float KP = 0.5; // Proportional gain tuning parameter
+const double TARGET = 10; //This sets the stopping distance
+const double KP = 0.5; // Proportional gain tuning parameter
 const uint8_t KI = 1; // Integral gain tuning parameter
 const uint8_t KD = 1; // Derivative gain tuning parameter
 
 // Initialize Variables
 uint16_t duration = 0; //Used to calculate distance
-uint16_t distance = 130; //cm, Distance to obstacle, starts at 255 because the ultrasonic sensor won't return a value larger than this
+double distance = 130; //cm, Distance to obstacle, starts at 255 because the ultrasonic sensor won't return a value larger than this
 uint16_t throttle = 50; //The speed of the robot as understood by the Sabertooth 2x12 RC ESC
-uint16_t error = 0; //Initial error
+double error = 0; //Initial error
 uint16_t distancein = 0;
-uint16_t previousSpeed = 0;
+double previousSpeed = 0;
 
 Servo SABERTOOTH; //Creating a servo object to represent forward/rearward motion input to the ESC
 Servo TRIM; //Creating a servo object for the left/right trim
@@ -68,7 +68,7 @@ uint8_t FindDistance() //This function uses the HC-SR04 ultrasonic sensor to fin
 	}
 }
 
-uint16_t CalcP(uint8_t distance, uint8_t previousSpeed) // add int_in if start condition is not zero, uint8_t error_prior not used at the moment
+uint16_t CalcP(double distance, double previousSpeed) // add int_in if start condition is not zero, uint8_t error_prior not used at the moment
 {
 	uint16_t outputP = 0;
 	if (distance < 10)
@@ -79,16 +79,16 @@ uint16_t CalcP(uint8_t distance, uint8_t previousSpeed) // add int_in if start c
 	{
 		// As distance goes from 130 to 10, speed decreases from 100 to 50, linearly. Since speed decreases as distance decreases
 		// the slope is positive. The intercept term is calculated from two points on the line
-		uint16_t targetSpeed = (50/120)*(distance + 110);
+		double targetSpeed = (50/120)*(distance + 110);
 		
 		if (targetSpeed > 100)
 		{
 			targetSpeed = 100;
 		}
 		
-		uint16_t error = previousSpeed - targetSpeed;
+		double error = previousSpeed - targetSpeed;
 		
-		outputP = previousSpeed - KP*error;
+		outputP = static_cast<unsigned int>(previousSpeed - KP*error);
 		
 		if (outputP > 100)
 		{
@@ -121,7 +121,7 @@ void loop()
   Serial.println(distance);
 	//Do some PID shit here
 	throttle = CalcP(distance,previousSpeed);
-	previousSpeed = throttle;
+	previousSpeed = static_cast<double>throttle;
 	error = distance - TARGET;
   Serial.print("error: ");
   Serial.println(error);
