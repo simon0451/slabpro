@@ -64,6 +64,7 @@ uint8_t FindDistance() //This function uses the HC-SR04 ultrasonic sensor to fin
 
 uint16_t CalcP(uint8_t distance, uint8_t previousSpeed) // add int_in if start condition is not zero, uint8_t error_prior not used at the moment
 {
+	uint8_t outputP;
 	if (distance < 10)
 	{
 		outputP = 25;
@@ -81,7 +82,7 @@ uint16_t CalcP(uint8_t distance, uint8_t previousSpeed) // add int_in if start c
 		
 		uint8_t error = previousSpeed - targetSpeed;
 		
-		uint16_t outputP = previousSpeed - KP*error
+		outputP = previousSpeed - KP*error
 		
 		if (outputP > 100)
 		{
@@ -113,7 +114,7 @@ void loop()
   Serial.print("Distance: ");
   Serial.println(distance);
 	//Do some PID shit here
-	throttle = calcP(distance,previousSpeed);
+	throttle = CalcP(distance,previousSpeed);
 	previousSpeed = throttle;
 	
   Serial.print("throttle pre math: ");
