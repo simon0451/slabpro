@@ -28,7 +28,7 @@ const uint8_t BACKFULL = 0; //Throttle corresponding to maximum backwards speed
 const uint8_t STOP = 50; //Throttle corresponding to robot stop
 const uint16_t BAUD = 9600; //Serial communications rate for debugging
 //Tuning parameters
-const uint16_t TRIMVALUE = 1502; //ms, value sent to the ESC for left/right tuning so that the robot tracks straight
+const uint16_t TRIMVALUE = 1500; //ms, value sent to the ESC for left/right tuning so that the robot tracks straight
 const uint8_t TARGET = 10; //This sets the stopping distance
 const float KP = 0.5; // Proportional gain tuning parameter
 const uint8_t KI = 1; // Integral gain tuning parameter
@@ -68,37 +68,6 @@ uint8_t FindDistance() //This function uses the HC-SR04 ultrasonic sensor to fin
 	}
 }
 
-uint16_t CalcP(uint8_t distance, uint8_t previousSpeed) // add int_in if start condition is not zero, uint8_t error_prior not used at the moment
-{
-	uint16_t outputP = 0;
-	if (distance < 10)
-	{
-		outputP = 40;
-	}
-	else
-	{
-		// As distance goes from 130 to 10, speed decreases from 100 to 50, linearly. Since speed decreases as distance decreases
-		// the slope is positive. The intercept term is calculated from two points on the line
-		uint16_t targetSpeed = (50/120)*(distance + 110);
-		
-		if (targetSpeed > 100)
-		{
-			targetSpeed = 100;
-		}
-		
-		uint16_t error = previousSpeed - targetSpeed;
-		
-		outputP = previousSpeed - KP*error;
-		
-		if (outputP > 100)
-		{
-			outputP = 100;
-		}
-	}
-	return outputP;
-}
-
-
 void setup()
 {
   Serial.begin(BAUD);
@@ -120,9 +89,7 @@ void loop()
   Serial.print("Distance: ");
   Serial.println(distance);
 	//Do some PID shit here
-	throttle = CalcP(distance,previousSpeed);
-	previousSpeed = throttle;
-	error = distance - TARGET;
+	throttle = (distance/2)+50;
   Serial.print("error: ");
   Serial.println(error);
 	throttle = (throttle*10)+1000; //Converts the throttle value (0-50-100) to a pulsewidth in microseconds understandable by the MEGA
