@@ -28,7 +28,7 @@ const uint8_t BACKFULL = 0; //Throttle corresponding to maximum backwards speed
 const uint8_t STOP = 50; //Throttle corresponding to robot stop
 const uint16_t BAUD = 9600; //Serial communications rate for debugging
 //Tuning parameters
-const uint16_t TRIMVALUE = 1500; //ms, value sent to the ESC for left/right tuning so that the robot tracks straight
+const uint16_t TRIMVALUE = 1480; //ms, value sent to the ESC for left/right tuning so that the robot tracks straight
 const uint8_t TARGET = 10; //This sets the stopping distance
 const float KP = 0.5; // Proportional gain tuning parameter
 const uint8_t KI = 1; // Integral gain tuning parameter

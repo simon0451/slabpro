@@ -88,7 +88,7 @@ uint16_t CalcP(double distance, double previousSpeed) // add int_in if start con
 		
 		double error = previousSpeed - targetSpeed;
 		
-		outputP = static_cast<unsigned int>(previousSpeed - KP*error);
+		outputP = previousSpeed - KP*error;
 		
 		if (outputP > 100)
 		{
@@ -121,7 +121,7 @@ void loop()
   Serial.println(distance);
 	//Do some PID shit here
 	throttle = CalcP(distance,previousSpeed);
-	previousSpeed = static_cast<double>throttle;
+	previousSpeed = throttle;
 	error = distance - TARGET;
   Serial.print("error: ");
   Serial.println(error);
