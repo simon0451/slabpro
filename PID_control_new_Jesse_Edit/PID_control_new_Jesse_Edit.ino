@@ -20,7 +20,7 @@ const uint8_t ECHO = 7; //The echo pin on the HC-SR04 ultrasonic sensor
 const uint8_t TRIG = 8; //The trigger pin on the HC-SR04 ultrasonic sensor
 const double MAXDISTANCE = 130; //cm, This makes it so the sensor won't try to resolve distances outside the sensor's range
 const double MINDISTANCE = 0; //cm, This sets the minimum range of the sensor to 0 for obvious reasons
-const uint8_t TIMESTEP = 1000; //ms, the iteration time
+const uint8_t TIMESTEP = 10; //ms, the iteration time
 const uint8_t AHEADFULL = 100; //Throttle corresponding to maximum forward speed
 const uint8_t BACKFULL = 0; //Throttle corresponding to maximum backwards speed
 const uint8_t STOP = 50; //Throttle corresponding to robot stop
@@ -28,9 +28,9 @@ const uint16_t BAUD = 9600; //Serial communications rate for debugging
 //Tuning parameters
 const uint16_t TRIMVALUE = 1480; //ms, value sent to the ESC for left/right tuning so that the robot tracks straight
 const double TARGET = 120; //This sets the stopping distance from the starting measuring position
-const double KP = 0.5; // Proportional gain tuning parameter
-const double KI = 1; // Integral gain tuning parameter
-const double KD = 1; // Derivative gain tuning parameter
+const double KP = 0.3; // Proportional gain tuning parameter
+const double KI = 5*0.01; // Integral gain tuning parameter
+const double KD = 0.5/0.01; // Derivative gain tuning parameter
 
 // Initialize Variables
 uint16_t duration = 0; //Used to calculate distance
@@ -75,10 +75,14 @@ int16_t ThrottleControl(double distance, double distance_pre, int16_t throttle)
   double dInput = distance - distance_pre;
   double outputSum = 0;
   
-  outputSum = outputSum + KI*error - KP*dInput;
+  outputSum = outputSum + KI*error;
 
-  int16_t output = (int) KP*error + outputSum - KD*dInput;
+  int16_t output = (int16_t) (KP*error + outputSum - KD*dInput + 50);
+
+  if (output > 100) output = 100; 
+  if (output < 0) output = 0;
   
+  return output;
 }
 
 void setup()
@@ -100,6 +104,8 @@ void loop()
   distance = FindDistance();
   Serial.print("Distance: ");
   Serial.println(distance);
+
+  distance = 130 - distance; //distance start at 0 instead of 130
   
   //Do some PID shit here
   throttle = ThrottleControl(distance,distance_pre,throttle);
