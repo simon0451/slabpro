@@ -28,8 +28,12 @@ R = 40/2; % ohm, measured using voltmeter
 
 %B = ((Kt/K)-(Ke*Kt))/R; % oz-in/rad/s
 Ls = 0;
-Td = interp1(ei,[27,45],7.2); % oz-in, stall torque for 7.2V input
-Kt = Td*R/(7.2/4); % oz-in/A
+Td = 27; 
+Kt = Td*4.2/6;%(6/4); % oz-in/A
+Ke = Kt/141.6; % [V/rad/s]
+
+Tdinterp = interp1(ei,[27,45],7.2); % oz-in, stall torque for 7.2V input
+Ktinterp = Tdinterp*4.2/7.2;
 
 g = 386; % in/sec^2, gravity
 m = 2.29*2; % oz, weight of motor 
@@ -45,5 +49,7 @@ Target = 40; % Distance from the wall to stop
 
 B = J/tau - Kt/R; % Damping of one motor
 
-
-
+time_20ft = 7.1;
+speed = 20/7.1; % [ft/s]
+speed_metric = speed*0.3048; % [m/s]
+speed_cmps = speed_metric*100;
