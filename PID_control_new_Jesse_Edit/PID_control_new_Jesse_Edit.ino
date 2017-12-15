@@ -28,9 +28,9 @@ const uint16_t BAUD = 9600; //Serial communications rate for debugging
 //Tuning parameters
 const uint16_t TRIMVALUE = 1480; //ms, value sent to the ESC for left/right tuning so that the robot tracks straight
 const double TARGET = 120; //This sets the stopping distance from the starting measuring position
-const double KP = 0.3; // Proportional gain tuning parameter
-const double KI = 5*0.01; // Integral gain tuning parameter
-const double KD = 0.5/0.01; // Derivative gain tuning parameter
+const double KP = 1.066; // Proportional gain tuning parameter
+const double KI = 10.66*0.01; // Integral gain tuning parameter
+const double KD = 0/0.01; // Derivative gain tuning parameter
 
 // Initialize Variables
 uint16_t duration = 0; //Used to calculate distance

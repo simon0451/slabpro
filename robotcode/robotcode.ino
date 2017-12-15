@@ -22,7 +22,7 @@ const uint16_t MINDISTANCE = 0; //This sets the minimum range of the sensor to 0
 //Variables
 uint16_t duration = 0; //Used to calculate distance
 uint16_t distance = 130; //cm, Distance to obstacle, starts at 255 because the ultrasonic sensor won't return a value larger than this
-uint8_t throttle = 50; //The speed of the robot as understood by the Sabertooth 2x12 RC ESC
+uint8_t throttle = 75; //The speed of the robot as understood by the Sabertooth 2x12 RC ESC
 
 Servo SABERTOOTH; //Creating a servo object to represent forward/rearward motion input to the ESC
 

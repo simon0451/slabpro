@@ -2,54 +2,155 @@
 % ME 747 
 % Final Project
 close all; clear all;
-%% Simulate PID Controlled RC car Response 
+%% Experimental data With Load Full Speed
 
-% Constants of the Motor
+nheaderlines = 31;
+dataexp = importdata('Motors on table with wires.lvm','\t',nheaderlines);
 
-MIN_SPEED = 0; % m/s
-MAX_SPEED = 0.858; % m/s
-speeds = [0,.858]; % m/s
-TIME_TO_MAX_VELOCITY = 2.8; % sec
-times = [0,2.8]; % sec
+time = dataexp.data(:,1);
+time = time(3146:end);
+time = time-time(1);
+volt = dataexp.data(:,2);
+volt = volt(3146:end);
+voltnew = volt;
+timenew = time;
 
-tau = times(1)+0.632*(times(end)-times(1));
+j = 1;
+for i = 1:length(time)
+    holder = volt(i);
+    if (holder>(-6) || holder<(-7.27))
+       indexes(j) = i;
+       j = j+1;
+    end
+    
+end
+voltnew(indexes) = [];
+timenew(indexes) = [];
+voltnew = voltnew(1:577);
+voltnew(218) = [];
+voltnew(411) = [];
+voltnew(429) = [];
+timenew = timenew(1:577);
+timenew(218) = [];
+timenew(411) = [];
+timenew(429) = [];
 
-% % Using specs from http://www.robotcombat.com/products/0-B16.html
-% % for voltage to omega to find Ke and convert to Kt using DC motor
-% % assumption Ke = Kt
-ei = [6,12]; % volt 
-omega = [468,937]*(60/(2*pi)); % rad/sec 
-% pfit = polyfit(omega,ei,1);
-% Ke = pfit(1); % V/rad/sec
-% Kt2 = Ke*141.6119; % (oz-in/A) torque constant
+Vtau = voltnew(1)+0.632*(voltnew(end)-voltnew(1));
+indexVtau = find(voltnew>Vtau-.02 & voltnew<Vtau+.02);
+tau = mean(time(indexVtau)); 
 
-R = 40/2; % ohm, measured using voltmeter
-%B = 0.002; % oz-in/rad/sec
+% figure
+% plot(timenew,voltnew,tau,Vtau,'ro')
+% xlabel('Time (sec)')
+% ylabel('Voltage (V)')
+% title('Output Voltage With Load at Full speed')
+% legend('Experimental Data','Time Constant, \tau')
+% set(gca,'fontname','Times','fontsize',12)
+% xlim([0 0.4])
+% grid on
+% box on
 
-%B = ((Kt/K)-(Ke*Kt))/R; % oz-in/rad/s
-Ls = 0;
-Td = 27; 
-Kt = Td*4.2/6;%(6/4); % oz-in/A
-Ke = Kt/141.6; % [V/rad/s]
+voltsmooth = smooth(voltnew);
 
-Tdinterp = interp1(ei,[27,45],7.2); % oz-in, stall torque for 7.2V input
-Ktinterp = Tdinterp*4.2/7.2;
+% figure
+% plot(timenew,voltsmooth,tau,Vtau,'ro')
+% xlabel('Time (sec)')
+% ylabel('Voltage (V)')
+% title('Output Voltage With Load at Full Speed')
+% legend('Smoothed Experimental Data','Time Constant, \tau')
+% set(gca,'fontname','Times','fontsize',12)
+% xlim([0 0.4])
+% grid on
+% box on
 
-g = 386; % in/sec^2, gravity
-m = 2.29*2; % oz, weight of motor 
-L = (4*.0393701)/2; % mm to in, distance from center of gravity of roatating shaft
-J = (m*L^2)/g; % oz-in-sec^2
+ei = 7.41; % Input Voltage as measured from battery
+voltss = voltnew(end); % Steady State Voltage
+K = abs(voltss)/ei; % Gain
+
+R = 4; % ohm, measured 8 ohm from 2 motors
+Td = interp1([6,12],[27,45],7.2); % oz-in, stall torque for 7.2V input
+Kt = Td*R/6; % oz-in/A
+Ke = Kt/141.6119; % (V/rad/s) 
+B = ((Kt/K)-Ke*Kt)/R; % oz-in/rad/s
+J = (tau*(R*B + Ke*Kt))/R; % oz-in-s^2
 
 % PID Controller constants
-Kp = 1; % P-Control
-Ki = 1; % I-Control
-Kd = 1; % D-Control
+Kp = 75; % 295.5; % P-Control
+Ki = 35*40; % 5162; % I-Control
+Kd = 1; % 2.951; % D-Control
 
-Target = 40; % Distance from the wall to stop
+Target = 10; % Distance from the wall to stop
 
-B = J/tau - Kt/R; % Damping of one motor
+%% Experimental data with load half speed
+clear all;
 
-time_20ft = 7.1;
-speed = 20/7.1; % [ft/s]
-speed_metric = speed*0.3048; % [m/s]
-speed_cmps = speed_metric*100;
+nheaderlines = 31; 
+dataexp = importdata('Motors on table with wires slower.lvm','\t',nheaderlines);
+
+time = dataexp.data(:,1);
+time = time(1837:2700);
+time = time-time(1);
+volt = dataexp.data(:,2);
+volt = volt(1837:2700);
+voltnew = volt;
+timenew = time;
+
+j = 1;
+for i = 1:length(time)
+    holder = volt(i);
+    if (holder>(-6.99) || holder<(-7.32))
+       indexes(j) = i;
+       j = j+1;
+    end
+    
+end
+voltnew(indexes) = [];
+timenew(indexes) = [];
+
+voltnew(193) = [];
+voltnew(276) = [];
+voltnew(344) = [];
+
+timenew(193) = [];
+timenew(276) = [];
+timenew(344) = [];
+
+Vtau = voltnew(1)+0.632*(voltnew(end)-voltnew(1));
+indexVtau = find(voltnew>Vtau-.004 & voltnew<Vtau+.004);
+tau = mean(time(indexVtau)); 
+
+
+figure
+plot(timenew,voltnew,tau,Vtau,'ro')
+xlabel('Time (sec)')
+ylabel('Voltage (V)')
+title('Output Voltage With Load at Half Speed')
+legend('Experimental Data','Time Constant, \tau')
+set(gca,'fontname','Times','fontsize',12)
+xlim([0 timenew(end)])
+grid on
+box on
+
+voltsmooth = smooth(voltnew);
+
+figure
+plot(timenew,voltsmooth,tau,Vtau,'ro')
+xlabel('Time (sec)')
+ylabel('Voltage (V)')
+title('Output Voltage With Load at Half Speed')
+legend('Smoothed Experimental Data','Time Constant, \tau')
+set(gca,'fontname','Times','fontsize',12)
+xlim([0 timenew(end)])
+grid on
+box on
+
+ei = 7.41; % Input Voltage as measured from battery
+voltss = voltnew(end); % Steady State Voltage
+K = abs(voltss)/ei; % Gain
+
+R = 4; % ohm, measured 8 ohm from 2 motors
+Td = interp1([6,12],[27,45],7.2); % oz-in, stall torque for 7.2V input
+Kt = Td*R/6; % oz-in/A
+Ke = Kt/141.6119; % (V/rad/s) 
+B = ((Kt/K)-Ke*Kt)/R; % oz-in/rad/s
+J = (tau*(R*B + Ke*Kt))/R; % oz-in-s^2
