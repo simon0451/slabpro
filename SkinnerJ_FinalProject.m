@@ -71,15 +71,15 @@ R = 4; % ohm, measured 8 ohm from 2 motors
 Td = interp1([6,12],[27,45],7.2); % oz-in, stall torque for 7.2V input
 Kt = Td*R/6; % oz-in/A
 Ke = Kt/141.6119; % (V/rad/s) 
-B = ((Kt/K)-Ke*Kt)/R; % oz-in/rad/s
-J = (tau*(R*B + Ke*Kt))/R; % oz-in-s^2
+B = ((Kt/K)-Kt)/R; % oz-in/rad/s
+J = (tau*(R*B + Kt))/R; % oz-in-s^2
 
 % PID Controller constants
-Kp = 75; % 295.5; % P-Control
-Ki = 35*40; % 5162; % I-Control
-Kd = 1; % 2.951; % D-Control
+Kp = 0.4; % 295.5; % P-Control
+Ki = 0.05; % 5162; % I-Control
+Kd = 0; % 2.951; % D-Control
 
-Target = 10; % Distance from the wall to stop
+Target = 120; % Distance from the wall to stop
 
 %% Experimental data with load half speed
 clear all;

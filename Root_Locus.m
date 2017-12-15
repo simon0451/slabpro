@@ -1,7 +1,7 @@
 % James Skinner 
 % final Project 
 % root locus to tune 
-close all; clear all;warning off;
+close all; clear all;
 %% Root locus
 
 J = 0.1306;
@@ -12,7 +12,7 @@ L = 0;
 tau = 0.0244; 
 s = tf('s');
 P_motor = K/(s*((J*s+b)*(L*s+R)+K^2));
-C = (0.4*s + 5)/s;
+C = (s^2 + 0.4*s + 0.05)/s;
 poles = pole(P_motor);
 rP_motor = minreal(P_motor*(s/max(abs(poles)) + 1));
 rsys_ol = minreal(C*rP_motor, 0.1);
@@ -21,10 +21,10 @@ rsys_ol = minreal(C*rP_motor, 0.1);
 
 figure
 rlocus(C*rP_motor)
-title('Root Locus - PI Control')
+title('Root Locus - PID Control')
 sgrid(.5, 0)
 sigrid(1/2.7)
-xlim([-30 1])
+xlim([-0.5 0.2])
 
 %[k,poles] = rlocfind(rsys_ol)
 k = .9719;
