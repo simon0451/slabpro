@@ -39,29 +39,29 @@ Vtau = voltnew(1)+0.632*(voltnew(end)-voltnew(1));
 indexVtau = find(voltnew>Vtau-.02 & voltnew<Vtau+.02);
 tau = mean(time(indexVtau)); 
 
-% figure
-% plot(timenew,voltnew,tau,Vtau,'ro')
-% xlabel('Time (sec)')
-% ylabel('Voltage (V)')
-% title('Output Voltage With Load at Full speed')
-% legend('Experimental Data','Time Constant, \tau')
-% set(gca,'fontname','Times','fontsize',12)
-% xlim([0 0.4])
-% grid on
-% box on
+figure
+plot(timenew,voltnew,tau,Vtau,'ro')
+xlabel('Time (sec)')
+ylabel('Voltage (V)')
+title('Output Voltage With Load at Full speed')
+legend('Experimental Data','Time Constant, \tau')
+set(gca,'fontname','Times','fontsize',12)
+xlim([0 0.4])
+grid on
+box on
 
 voltsmooth = smooth(voltnew);
 
-% figure
-% plot(timenew,voltsmooth,tau,Vtau,'ro')
-% xlabel('Time (sec)')
-% ylabel('Voltage (V)')
-% title('Output Voltage With Load at Full Speed')
-% legend('Smoothed Experimental Data','Time Constant, \tau')
-% set(gca,'fontname','Times','fontsize',12)
-% xlim([0 0.4])
-% grid on
-% box on
+figure
+plot(timenew,voltsmooth,tau,Vtau,'ro')
+xlabel('Time (sec)')
+ylabel('Voltage (V)')
+title('Output Voltage With Load at Full Speed')
+legend('Smoothed Experimental Data','Time Constant, \tau')
+set(gca,'fontname','Times','fontsize',12)
+xlim([0 0.4])
+grid on
+box on
 
 ei = 7.41; % Input Voltage as measured from battery
 voltss = voltnew(end); % Steady State Voltage
@@ -154,3 +154,16 @@ Kt = Td*R/6; % oz-in/A
 Ke = Kt/141.6119; % (V/rad/s) 
 B = ((Kt/K)-Ke*Kt)/R; % oz-in/rad/s
 J = (tau*(R*B + Ke*Kt))/R; % oz-in-s^2
+
+%% Originall plot
+clear all;
+
+nheaderlines = 31; 
+dataexp = importdata('Motors on table with wires slower.lvm','\t',nheaderlines);
+
+figure;
+hold on;
+plot(dataexp.data(1800:2500,1),dataexp.data(1800:2500,2));
+xlabel('Time (s)','FontSize',12);
+ylabel('Voltage (V)','FontSize',12);
+ylim([-8 -6]);
